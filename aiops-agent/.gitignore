@@ -1,0 +1,22 @@
+# 敏感凭证，绝对不要提交到仓库
+.env
+kubeconfig
+.ssh/
+ssh-keys/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# 运行时产物
+logs/
+reports/
+*.log
+
+# 编辑器临时文件
+*.swp
+*.swo
+*~

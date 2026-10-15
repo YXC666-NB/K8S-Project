@@ -1,0 +1,47 @@
+# config.yaml AIOps Agent业务配置
+agent:
+  max_iterations: 15          # Agent最大迭代熔断，防止死循环调用工具
+  timeout_seconds: 180       # 单次Graph执行总超时
+  enable_human_in_loop: false # 是否开启人工确认节点，生产环境建议true
+
+# SSH远程服务器巡检配置
+ssh:
+  private_key_path: "/app/ssh-keys/id_rsa"
+  ssh_timeout: 10
+  # 受管服务器列表
+  servers:
+    - host: "192.168.19.135"
+      port: 22
+      user: "root"
+    - host: "192.168.19.136"
+      port: 22
+      user: "root"
+    - host: "192.168.19.132"
+      port: 22
+      user: "root"
+  # 高危命令黑名单，工具层拦截，防止AI执行危险操作
+cmd_blacklist:
+  - "rm"
+  - "mkfs"
+  - "fdisk"
+  - "iptables"
+  - "reboot"
+  - "halt"
+  - "shutdown"
+
+# K8s配置
+kubernetes:
+  kubeconfig_path: "/app/.kube/config"
+  read_only_mode: true   # 强制只读，禁止变更资源，SRE安全规范
+
+# Prometheus告警webhook接收配置
+webhook:
+  listen_port: 8000
+  alert_path: "/api/v1/alert/receive"
+
+# 报告输出路径
+report:
+  save_dir: "/app/reports"
+
+# 日志配置引用
+log_config_path: ""
