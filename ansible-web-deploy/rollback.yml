@@ -1,0 +1,23 @@
+---
+- name: 回滚，卸载Nginx
+  hosts: web_servers
+  tasks:
+    - name: check if nginx service exits
+      shell: systemctl list-unit-files | grep -q nginx.service
+      register: nginx_service_check
+      failed_when: false
+    - name: stop nginx service
+      service:
+        name: nginx
+        state: stopped
+        enabled: no
+      when: nginx_service_check.rc == 0
+    - name: remove nginx
+      dnf:
+        name: nginx
+        state: absent
+    - name: remove web root dir
+      file:
+        path: /usr/share/nginx/html
+        state: absent
+

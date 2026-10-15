@@ -1,0 +1,59 @@
+# prometheus-webhook-dingtalk-deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-webhook-dingtalk
+  namespace: monitoring
+  labels:
+    app: prometheus-webhook-dingtalk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-webhook-dingtalk
+  template:
+    metadata:
+      labels:
+        app: prometheus-webhook-dingtalk
+    spec:
+      containers:
+      - name: prometheus-webhook-dingtalk
+        # 使用官方镜像
+        #image: timonwong/prometheus-webhook-dingtalk:v2.1.0
+        image: registry.cn-hangzhou.aliyuncs.com/acs/prometheus-webhook-dingtalk:v2.1.0
+        ports:
+        - containerPort: 8060
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus-webhook-dingtalk
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+      volumes:
+      - name: config
+        configMap:
+          name: prometheus-webhook-dingtalk-config
+
+
+---
+
+# prometheus-webhook-dingtalk-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-webhook-dingtalk
+  namespace: monitoring
+spec:
+  selector:
+    app: prometheus-webhook-dingtalk
+  ports:
+  - port: 8060
+    targetPort: 8060
+    name: http
+  type: ClusterIP

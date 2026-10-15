@@ -1,0 +1,32 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ghost-local-hpa
+  namespace: blog
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ghost-local
+  minReplicas: 1          # 至少保留 1 个副本
+  maxReplicas: 3          # 最多扩展到 3 个副本，防止资源失控
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70   # 当所有 Pod 平均 CPU 利用率超过 70% 时触发扩容
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30   # 扩容前观察 30 秒，避免毛刺触发
+      policies:
+      - type: Pods
+        value: 2                       # 每轮最多增加 2 个 Pod
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 缩容前观察 5 分钟，避免流量回落后立刻缩容
+      policies:
+      - type: Pods
+        value: 1                       # 每轮最多减少 1 个 Pod
+        periodSeconds: 60

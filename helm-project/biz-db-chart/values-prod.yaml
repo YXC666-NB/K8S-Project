@@ -1,0 +1,28 @@
+replicaCount:
+  mysql: 1
+  redis: 1
+
+cronjob:
+  schedule: "0 2 * * *"
+  keepBackupDays: 30
+
+storage:
+  mysql: 20Gi
+  redis: 10Gi
+  backup: 50Gi
+
+resources:
+  mysql:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  redis:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

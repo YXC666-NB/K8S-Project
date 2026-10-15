@@ -1,0 +1,20 @@
+# 系统缓存、日志
+*.log
+*.tmp
+.DS_Store
+__pycache__/
+
+# 集群敏感配置，绝对不要提交
+~/.kube/config
+kubeconfig
+*.secret
+*.env
+password.txt
+
+# helm缓存
+*/charts/
+*/.helm/
+
+# 本地二进制、编译产物
+*.tar
+*.gz

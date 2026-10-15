@@ -1,0 +1,13 @@
+# prometheus-webhook-dingtalk-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-webhook-dingtalk-config
+  namespace: monitoring
+data:
+  config.yml: |
+    targets:
+      # 定义一个钉钉目标，名称可自定义
+      dingtalk:
+        # 钉钉机器人Webhook地址
+        url: "https://oapi.dingtalk.com/robot/send?access_token=REPLACE_WITH_YOUR_DINGTALK_ROBOT_ACCESS_TOKEN"

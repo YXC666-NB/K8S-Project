@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-sc-pvc
+  namespace: blog
+spec:
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ghost-sc-pvc
+  namespace: blog
+spec:
+  #storageClassName: local-path
+  storageClassName: nfs-client
+  accessModes:
+    #- ReadWriteOnce
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

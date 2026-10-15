@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: biz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  serviceName: redis-svc
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:6-alpine
+        imagePullPolicy: IfNotPresent
+        command:
+        - redis-server
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --appendonly yes # 开启AOF持久化
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: redis-auth
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      storageClassName: local-path
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-svc
+  namespace: biz
+spec:
+  selector:
+    app: redis
+  clusterIP: None
+  ports:
+  - port: 6379
+    targetPort: 6379 

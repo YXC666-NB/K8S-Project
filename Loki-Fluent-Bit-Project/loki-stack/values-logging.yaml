@@ -1,0 +1,32 @@
+loki:
+  persistence:
+    enabled: true
+    storageClassName: "local-path"
+    size: 10Gi
+  config:
+    server:
+      http_listen_address: 0.0.0.0   # 关键修复，监听全部网卡
+    limits_config:
+      retention_period: 24h
+
+fluent-bit:
+  enabled: false
+
+promtail:
+  enabled: true
+  config:
+    logLevel: info
+    serverPort: 3101
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+
+grafana:
+  enabled: true
+  persistence:
+    enabled: true
+    storageClassName: "local-path"
+    size: 5Gi
+  adminPassword: "Admin@123456"
+  service:
+    type: NodePort
+    nodePort: 30180

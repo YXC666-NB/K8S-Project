@@ -1,0 +1,73 @@
+
+pipeline {
+  agent {
+    kubernetes {
+"""
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: git
+    image: alpine/git
+    command: ['cat']
+    tty: true
+  - name: docker
+    image: docker:26
+    command: ['cat']
+    tty: true
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+
+"""
+    }
+  }
+  environment {
+    HARBOR_ADDR = "192.168.19.132"
+    HARBOR_REPO = "library/test-webhook"
+    // 使用webhook传过来的commit_id做镜像标签，如果没有就用build_number兜底
+    IMG_TAG = "${params.commit_id ?: env.BUILD_NUMBER}"
+  }
+
+  stages {
+    stage('拉取Gitee代码') {
+      steps {
+        container('git') {
+          checkout scm
+          sh '''
+            ls -l
+            cat index.txt
+          '''
+        }
+      }
+    }
+
+    stage('构建并推送镜像到Harbor') {
+      steps {
+        container('docker') {
+          // harbor的账号密码凭据，改成你自己credentialsId
+          withCredentials([string(credentialsId: 'admin', variable: 'HARBOR_PWD')]) {
+            sh """
+              docker login ${HARBOR_ADDR} -u admin -p ${HARBOR_PWD}
+              docker build -t ${HARBOR_ADDR}/${HARBOR_REPO}:${IMG_TAG} .
+              docker push ${HARBOR_ADDR}/${HARBOR_REPO}:${IMG_TAG}
+            """
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "流水线执行成功，镜像：${HARBOR_ADDR}/${HARBOR_REPO}:${IMG_TAG}"
+    }
+    failure {
+      echo "流水线执行失败"
+    }
+  }
+}

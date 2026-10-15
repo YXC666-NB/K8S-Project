@@ -1,0 +1,6 @@
+---
+- name: 批量部署 Nginx Web站点
+  hosts: web_servers
+  roles:
+    - nginx_web
+ 

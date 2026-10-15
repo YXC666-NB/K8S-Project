@@ -1,0 +1,48 @@
+# 全局
+replicaCount:
+  mysql: 1
+  redis: 1
+
+# 镜像
+image:
+  mysql: mysql:5.7
+  redis: redis:6-alpine
+  backup: mysql:5.7
+imagePullPolicy: IfNotPresent
+
+# 存储
+storageClass: local-path
+storage:
+  mysql: 10Gi
+  redis: 5Gi
+  backup: 20Gi
+
+# 账号密码，生产环境不要明文，实际通过--set或者secret外部注入
+auth:
+  mysqlRootPassword: "root123456"
+  redisPassword: "redis666"
+
+# CronJob备份配置
+cronjob:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  keepBackupDays: 7
+
+# 资源限制
+resources:
+  mysql:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  redis:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

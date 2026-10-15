@@ -1,0 +1,32 @@
+# SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-sa
+  namespace: biz
+---
+# Role：允许读取secret、操作备份PVC
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-role
+  namespace: biz
+rules:
+- apiGroups: [""]
+  resources: ["secrets","persistentvolumeclaims","pods"]
+  verbs: ["get","list","watch"]
+---
+# 绑定
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-bind
+  namespace: biz
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: backup-role
+subjects:
+- kind: ServiceAccount
+  name: backup-sa
+  namespace: biz

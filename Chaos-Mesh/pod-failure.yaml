@@ -1,0 +1,14 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: test-liveness-probe
+  namespace: chaos-mesh
+spec:
+  action: pod-failure
+  mode: one
+  duration: '60s'
+  selector:
+    namespaces:
+      - blog
+    labelSelectors:
+      'app': 'ghost'

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: biz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: mysql-svc # 必须配套无头服务
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.7
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: mysql-root-pwd
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+  # 动态申请持久存储，自动生成独立PVC/PV
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      storageClassName: local-path
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+---
+# 无头Service（StatefulSet固定域名：mysql-0.mysql-svc.biz.svc.cluster.local）
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-svc
+  namespace: biz
+spec:
+  selector:
+    app: mysql
+  clusterIP: None # 无头服务无集群IP
+  ports:
+  - port: 3306
+    targetPort: 3306

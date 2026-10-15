@@ -1,0 +1,7 @@
+replicaCount:
+  mysql: 1
+  redis: 1
+
+cronjob:
+  schedule: "0 3 * * *"
+  keepBackupDays: 7

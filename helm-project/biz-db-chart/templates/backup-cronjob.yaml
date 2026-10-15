@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup-cron
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "biz-db-chart.labels" . | indent 4 }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-sa
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: {{ .Values.image.backup }}
+            imagePullPolicy: {{ .Values.imagePullPolicy }}
+            env:
+            - name: MYSQL_HOST
+              value: "mysql-0.mysql-svc.{{ .Values.namespace }}.svc.cluster.local"
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: db-redis-secret
+                  key: mysql-root-pwd
+            - name: REDIS_HOST
+              value: "redis-0.redis-svc.{{ .Values.namespace }}.svc.cluster.local"
+            - name: REDIS_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: db-redis-secret
+                  key: redis-auth
+            volumeMounts:
+            - name: backup-volume
+              mountPath: /backup
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apk update && apk add redis
+              DATE=$(date +%Y%m%d_%H%M%S)
+              BACKUP_DIR=/backup
+              # mysql备份
+              mysqldump -h $MYSQL_HOST -uroot --all-databases > ${BACKUP_DIR}/mysql_all_${DATE}.sql
+              # redis备份
+              redis-cli -h $REDIS_HOST -a $REDIS_AUTH BGSAVE
+              sleep 3
+              redis-cli -h $REDIS_HOST -a $REDIS_AUTH --rdb ${BACKUP_DIR}/redis_dump_${DATE}.rdb
+              # 清理旧备份
+              find ${BACKUP_DIR} -name "*.sql" -o -name "*.rdb" -mtime +{{ .Values.cronjob.keepBackupDays }} -delete
+          volumes:
+          - name: backup-volume
+            persistentVolumeClaim:
+              claimName: backup-storage

@@ -1,0 +1,4 @@
+nginx_package_name: nginx
+nginx_service_name: nginx
+nginx_document_root: /usr/share/nginx/html
+nginx_listen_port: 80

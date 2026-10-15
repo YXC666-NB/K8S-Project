@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "biz-db-chart.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.mysql }}
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: mysql-svc
+  template:
+    metadata:
+      labels:
+        app: mysql
+{{ include "biz-db-chart.labels" . | indent 8 }}
+    spec:
+      containers:
+      - name: mysql
+        image: {{ .Values.image.mysql }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.mysql.requests.cpu }}
+            memory: {{ .Values.resources.mysql.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.mysql.limits.cpu }}
+            memory: {{ .Values.resources.mysql.limits.memory }}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: mysql-root-pwd
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      storageClassName: {{ .Values.storageClass }}
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.storage.mysql }}

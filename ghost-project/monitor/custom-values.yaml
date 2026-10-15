@@ -1,0 +1,49 @@
+global:
+  # 将全局镜像仓库设置为阿里云杭州区域的公共镜像仓库，作为基础前缀。
+  imageRegistry: "registry.cn-hangzhou.aliyuncs.com"
+
+# Prometheus Operator
+prometheusOperator:
+  image:
+    # 阿里云镜像路径：registry.cn-hangzhou.aliyuncs.com/acs/prometheus-operator
+    repository: acs/prometheus-operator
+    tag: v0.71.0
+  admissionWebhooks:
+    patch:
+      image:
+        # 阿里云镜像路径：registry.cn-hangzhou.aliyuncs.com/acs/kube-webhook-certgen
+        repository: acs/kube-webhook-certgen
+        tag: v0.71.0
+
+# Prometheus Server
+prometheus:
+  prometheusSpec:
+    image:
+      # 阿里云镜像路径：registry.cn-hangzhou.aliyuncs.com/acs/prometheus
+      repository: acs/prometheus
+      tag: v2.48.1
+    serviceMonitorNamespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: blog
+
+# Grafana
+grafana:
+  image:
+    # 阿里云镜像路径：registry.cn-hangzhou.aliyuncs.com/acs/grafana
+    repository: acs/grafana
+    tag: 10.2.3
+  adminPassword: admin123
+
+# kube-state-metrics
+kubeStateMetrics:
+  image:
+    # 阿里云镜像路径：registry.cn-hangzhou.aliyuncs.com/acs/kube-state-metrics
+    repository: acs/kube-state-metrics
+    tag: v2.10.1
+
+# node-exporter
+nodeExporter:
+  image:
+    # 阿里云镜像路径：registry.cn-hangzhou.aliyuncs.com/acs/node-exporter
+    repository: acs/node-exporter
+    tag: v1.7.0

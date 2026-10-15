@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: monitoring
+data:
+  rules.yml: |
+    groups:
+      - name: mysql_alerts
+        rules:
+          - alert: MySQLDown
+            expr: mysql_up == 0
+            for: 30s
+            labels:
+              severity: critical
+            annotations:
+              summary: "监控告警：MySQL 实例不可用"
+              description: "MySQL {{ $labels.instance }} 连接失败超过30秒"
+
+                # - alert: MySQLRestarted
+                # expr: mysql_global_status_uptime < 300
+                #for: 0s
+                #labels:
+                #severity: warning
+                #annotations:
+                #summary: "监控告警：MySQL 刚刚重启"
+                #description: "运行时间不足5分钟，可能异常重启"
+
+      - name: ghost_alerts
+        rules:
+          - alert: GhostServiceDown
+            expr: probe_success{job="probe_ghost"} == 0
+            for: 30s
+            labels:
+              severity: critical
+            annotations:
+              summary: "监控告警：Ghost 博客无法访问"
+              description: "Ghost 地址 {{ $labels.instance }} 探测失败"
+
+                #- alert: GhostResponseSlow
+                #expr: probe_duration_seconds{job="probe_ghost"} > 1
+                #for: 1m
+                #labels:
+                #severity: warning
+                #annotations:
+                #summary: "监控告警：Ghost 响应缓慢"
+                #description: "当前响应时间 {{ $value }}s，超过1秒"
